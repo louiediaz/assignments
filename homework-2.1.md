@@ -31,3 +31,71 @@ When you're done editing this file, save it, commit it, and push it to your "ass
 
 ## Now get to it!
 
+
+// Function: function db_init($dbconf)
+{
+    extract($dbconf);
+    $dsn = $type === 'mysql'
+        ? 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $name
+        : 'sqlite:' . $path;
+    try {
+        $db = new PDO($dsn, $user, $pass);
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $db;
+    } catch (PDOException $e) {
+        die('DB Connection failed: ' . $e->getMessage());
+    }
+}
+
+// Function(s): db_init, extract, new PDO, setAttribute, catch, die, getMessage
+// Variable(s): $dsn, $type, $host, $port, $name, $path, $dns, $user, $pass, $db, $e
+// Literals(s): none
+
+function create_user()
+{
+    $q = cfg('db')->prepare("
+INSERT INTO users (user_name, user_password_hash, user_email)
+VALUES(:user_name, :user_password_hash, :user_email)");
+
+    $q->bindValue(":user_name", $_POST['user_name']);
+    $q->bindValue(":user_password_hash", password_hash($_POST['user_password_new'], PASSWORD_DEFAULT));
+    $q->bindValue(":user_email", $_POST['user_email']);
+    if (!$q->execute()) throw new Exception(die($q->errorInfo()));
+    $q->closeCursor();
+}
+
+// Function(s): create_user, cfg, prepare, bindValue, execute, closeCursor, if
+// Variable(s): $q, $_POST, 
+// Literals(s): none
+
+function read_user($user)
+{
+    return cfg('db')->query("
+SELECT user_name, user_email, user_password_hash
+FROM users
+WHERE user_name = '$user'")->fetch(PDO::FETCH_ASSOC);
+}
+
+// Function(s): read_user, return, SELECT, FROM, WHERE, fetch
+// Variable(s): $user
+// Literals(s): none
+
+function update_user()
+{
+}
+
+function delete_user()
+{
+}
+
+function create_session($user)
+{
+    $_SESSION['user_name'] = $user['user_name'];
+    $_SESSION['user_email'] = $user['user_email'];
+    $_SESSION['user_logged_in'] = 1;
+    $_SESSION['msg'] = $user['user_name'] . ' is now logged in';
+}
+
+// Function(s): create_session, msg
+// Variable(s): $user, $_SESSION
+// Literals(s): none
